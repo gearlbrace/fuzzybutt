@@ -6,7 +6,8 @@ dnspython==2.1.0
 future~=1.0.0
 googletrans~=4.0.0-rc1
 motor~=3.6
-pillow~=10.3.0
+#pillow~=10.3.0
+pillow
 psutil~=5.9.8
 pykeyboard~=0.1.5
 python-arq~=6.0.7
@@ -25,4 +26,4 @@ img2pdf~=0.5.1
 telegraph~=2.2.0
 pytube~=15.0.0
 pytz~=2024.1
-git+https://github.com/KurimuzonAkuma/pyrogram.git
+kurigram==2.2.7

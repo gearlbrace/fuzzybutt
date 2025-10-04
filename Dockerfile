@@ -1,4 +1,4 @@
-FROM python:slim-bullseye
+FROM python:3.9-slim-bullseye
 
 WORKDIR /wbb
 RUN chmod 777 /wbb
