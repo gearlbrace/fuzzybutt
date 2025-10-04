@@ -25,6 +25,7 @@ import asyncio
 import time
 from inspect import getfullargspec
 from os import path
+from pathlib import Path
 
 from aiohttp import ClientSession
 from motor.motor_asyncio import AsyncIOMotorClient as MongoClient
@@ -41,6 +42,7 @@ if is_config:
 else:
     from sample_config import *
 
+Path("sessions").mkdir(exist_ok=True)
 
 USERBOT_PREFIX = USERBOT_PREFIX
 GBAN_LOG_GROUP_ID = GBAN_LOG_GROUP_ID
