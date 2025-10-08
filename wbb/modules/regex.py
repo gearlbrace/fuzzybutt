@@ -20,7 +20,10 @@ DELIMITERS = ("/", ":", "|", "_")
 async def sed(_, message):
     if not message.text:
         return
-    sed_result = separate_sed(message.text)
+
+    text_content = str(message.text)
+    sed_result = separate_sed(text_content)
+
     if message.reply_to_message:
         if message.reply_to_message.text:
             to_fix = message.reply_to_message.text
@@ -77,6 +80,9 @@ def infinite_checker(repl):
 
 
 def separate_sed(sed_string):
+    if not isinstance(sed_string, str):
+        sed_string = str(sed_string)
+
     if (
         len(sed_string) >= 3
         and sed_string[1] in DELIMITERS

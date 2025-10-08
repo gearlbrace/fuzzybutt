@@ -40,7 +40,7 @@ from wbb.utils.dbfunctions import (
     update_karma,
 )
 from wbb.utils.filter_groups import karma_negative_group, karma_positive_group
-from wbb.utils.functions import get_user_id_and_usernames
+from wbb.utils.functions import get_specific_usernames
 
 __MODULE__ = "Karma"
 __HELP__ = """[UPVOTE] - Use upvote keywords like "+", "+1", "thanks", etc to upvote a message.
@@ -146,50 +146,77 @@ async def downvote(_, message):
 @capture_err
 async def command_karma(_, message):
     chat_id = message.chat.id
+    
     if not message.reply_to_message:
         m = await message.reply_text("Analyzing Karma...")
-        karma = await get_karmas(chat_id)
-        if not karma:
-            return await m.edit("No karma in DB for this chat.")
-        msg = f"Karma list of {message.chat.title}"
-        limit = 0
-        karma_dicc = {}
-        for i in karma:
-            user_id = await alpha_to_int(i)
-            user_karma = karma[i]["karma"]
-            karma_dicc[str(user_id)] = user_karma
-            karma_arranged = dict(
-                sorted(
-                    karma_dicc.items(),
-                    key=lambda item: item[1],
-                    reverse=True,
-                )
+        
+        try:
+            karma = await get_karmas(chat_id)
+            if not karma:
+                return await m.edit("No karma in DB for this chat.")
+            
+            karma_dicc = {}
+            for i in karma:
+                try:
+                    user_id = await alpha_to_int(i)
+                    user_karma = karma[i]["karma"]
+                    karma_dicc[str(user_id)] = user_karma
+                except Exception as e:
+                    continue
+            
+            if not karma_dicc:
+                return await m.edit("No karma in DB for this chat.")
+            
+            karma_sorted = sorted(
+                karma_dicc.items(),
+                key=lambda item: item[1],
+                reverse=True
             )
-        if not karma_dicc:
-            return await m.edit("No karma in DB for this chat.")
-        userdb = await get_user_id_and_usernames(app)
-        karma = {}
-        for user_idd, karma_count in karma_arranged.items():
-            if limit > 15:
-                break
-            if int(user_idd) not in list(userdb.keys()):
-                continue
-            username = userdb[int(user_idd)]
-            karma["@" + username] = ["**" + str(karma_count) + "**"]
-            limit += 1
-        await m.edit(section(msg, karma))
+            
+            try:
+                user_ids_needed = [int(uid) for uid, _ in karma_sorted]
+                userdb = await get_specific_usernames(app, user_ids_needed)
+            except Exception as e:
+                return await m.edit(f"Error fetching user data: {str(e)}")
+            
+            karma_display = {}
+            limit = 0
+            
+            for user_id_str, karma_count in karma_sorted:
+                if limit >= 15:
+                    break
+                
+                user_id_int = int(user_id_str)
+                
+                if user_id_int not in userdb:
+                    continue
+                
+                username = userdb[user_id_int]
+                karma_display[f"@{username}"] = [f"**{karma_count}**"]
+                limit += 1
+            
+            if not karma_display:
+                return await m.edit("No valid users found with karma.")
+            
+            msg = f"Karma list of {message.chat.title}"
+            await m.edit(section(msg, karma_display))
+            
+        except Exception as e:
+            await m.edit(f"An error occurred: {str(e)}")
+            rais
+    
     else:
         if not message.reply_to_message.from_user:
             return await message.reply("Anon user has no karma.")
-
+        
         user_id = message.reply_to_message.from_user.id
-        karma = await get_karma(chat_id, await int_to_alpha(user_id))
-        if karma:
-            karma = karma["karma"]
-            await message.reply_text(f"**Total Points**: __{karma}__")
-        else:
-            karma = 0
-            await message.reply_text(f"**Total Points**: __{karma}__")
+        try:
+            karma = await get_karma(chat_id, await int_to_alpha(user_id))
+            karma_value = karma["karma"] if karma else 0
+            await message.reply_text(f"**Total Points**: __{karma_value}__")
+        except Exception as e:
+            await message.reply_text(f"Error fetching karma: {str(e)}")
+
 
 
 @app.on_message(filters.command("karma_toggle") & ~filters.private)

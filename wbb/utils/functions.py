@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import asyncio
+
 from asyncio import gather
 from datetime import datetime, timedelta
 from io import BytesIO
@@ -31,6 +33,7 @@ from random import randint
 from re import findall, search
 from re import sub as re_sub
 from sys import executable
+from typing import Dict
 
 import aiofiles
 import speedtest
@@ -378,23 +381,27 @@ async def get_data_and_name(replied_message, message):
     return data, name
 
 
-async def get_user_id_and_usernames(client) -> dict:
-    with client.storage.conn:
-        query = """
-        SELECT usernames.id, usernames.username
-        FROM usernames
-        WHERE usernames.id IN (
-            SELECT peers.id
-            FROM peers
-            WHERE peers.type IN ("user", "bot") AND username IS NOT NULL
-        )
-        """
-        result = client.storage.conn.execute(query).fetchall()
+async def get_specific_usernames(client, user_ids: list) -> Dict[int, str]:
+    def _fetch_users():
+        ids_str = ','.join(str(uid) for uid in user_ids)
 
-    users_ = {}
-    for row in result:
-        user_id = row[0]
-        username = row[1]
-        users_[user_id] = username
+        with client.storage.conn:
+            query = f"""
+            SELECT usernames.id, usernames.username
+            FROM usernames
+            WHERE usernames.id IN ({ids_str})
+            AND username IS NOT NULL
+            """
+            result = client.storage.conn.execute(query).fetchall()
 
-    return users_
+        users_ = {}
+        for row in result:
+            users_[row[0]] = row[1]
+        return users_
+
+    try:
+        users = await asyncio.to_thread(_fetch_users)
+        return users
+    except Exception as e:
+        print(f"Error fetching users: {e}")
+        return {}
