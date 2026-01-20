@@ -73,7 +73,7 @@ async def rice(_, message: Message):
 
 @app.on_callback_query(filters.regex("forward"))
 async def callback_query_forward_rice(_, callback_query):
-    app.set_parse_mode("markdown")
+    app.set_parse_mode(ParseMode.MARKDOWN)
     u_approver = callback_query.from_user
     c_group = callback_query.message.chat
     approver_status = (await c_group.get_member(u_approver.id)).status
