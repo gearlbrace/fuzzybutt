@@ -69,7 +69,7 @@ async def is_user_fed_owner(fed_id, user_id: int):
     if not getfed:
         return False
     owner_id = getfed["owner_id"]
-    if user_id == owner_id or user_id == SUDOERS:
+    if user_id == owner_id or user_id in SUDOERS:
         return True
     else:
         return False

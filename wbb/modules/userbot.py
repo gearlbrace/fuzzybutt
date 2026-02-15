@@ -1,8 +1,8 @@
 """
-    CREDITS:
-        MOST OF THE CODE IN THIS FILE IS WRITTEN BY @Pokurt.
-        SOURCE:
-            https://github.com/pokurt/Nana-Remix/blob/master/nana/plugins/devs.py
+CREDITS:
+    MOST OF THE CODE IN THIS FILE IS WRITTEN BY @Pokurt.
+    SOURCE:
+        https://github.com/pokurt/Nana-Remix/blob/master/nana/plugins/devs.py
 """
 
 import os
@@ -66,6 +66,8 @@ async def iter_edit(message: Message, text: str):
 )
 async def executor(client, message: Message):
     global m, p, r
+    if not message.from_user or message.from_user.id not in SUDOERS:
+        return
     try:
         cmd = message.text.split(" ", maxsplit=1)[1]
     except IndexError:
@@ -157,6 +159,8 @@ async def executor(client, message: Message):
     & filters.command("sh", prefixes=USERBOT_PREFIX),
 )
 async def shellrunner(_, message: Message):
+    if not message.from_user or message.from_user.id not in SUDOERS:
+        return
     if len(message.command) < 2:
         return await eor(message, text="**Usage:**\n/sh git pull")
 
@@ -229,38 +233,6 @@ async def shellrunner(_, message: Message):
             message,
             text=f"**INPUT:**\n```{escape(text)}```\n\n**OUTPUT: **\n`No output`",
         )
-
-HISTORY = [
-        {"role": "system", "content": "You are a human, behave and response like a human, don't behave like a bot because you are not an ai bot.\n\nAlways end a message with a question or new topic"}
-    ]
-from wbb.utils.http import post
-from asyncio import sleep
-
-@app2.on_message(
-        filters.chat([-1002139890459, "thehamkercat"])
-        & filters.text
-)
-async def asd_temp(_, message: Message):
-    if (message.from_user.username or "").lower() in ["thehamkercat", "jojiiofficial"]:
-        return
-    text = message.text
-
-    HISTORY.append({"role": "user", "content": text})
-
-    response = await post(
-             "http://localhost:1234/v1/chat/completions",
-             headers={"Content-Type": "application/json"},
-             json={
-                 "messages": HISTORY,
-                  "temperature": 0.7, 
-                  "max_tokens": -1,
-                  "stream": False,
-                }
-            )
-    resp_text = response['choices'][0]['message']['content']
-    HISTORY.append({"role": "assistant", "content": resp_text})
-    await sleep(10)
-    return await message.reply(resp_text)
 
 
 @app2.on_message(
