@@ -10,6 +10,7 @@ ENV PYTHONUNBUFFERED=1
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
     curl ca-certificates \
     git gcc build-essential \
+    iputils-ping \
     && rm -rf /var/lib/apt/lists/*
 
 # install uv

@@ -1,6 +1,7 @@
 # https://github.com/PaulSonOfLars/tgbot/blob/master/tg_bot/modules/sed.py
+import asyncio
+import multiprocessing as mp
 import re
-import sre_constants
 
 from pyrogram import filters
 
@@ -11,6 +12,62 @@ __MODULE__ = "Sed"
 __HELP__ = "**Usage:**\ns/foo/bar"
 
 DELIMITERS = ("/", ":", "|", "_")
+REGEX_TIMEOUT_SECONDS = 5
+
+
+def _regex_sub_worker(
+    pattern: str,
+    replacement: str,
+    source_text: str,
+    ignore_case: bool,
+    replace_all: bool,
+    result_queue,
+):
+    flags = re.I if ignore_case else 0
+    count = 0 if replace_all else 1
+
+    try:
+        result = re.sub(pattern, replacement, source_text, count=count, flags=flags)
+        result_queue.put(("ok", result))
+    except re.error:
+        result_queue.put(("regex_error", ""))
+
+
+def run_regex_with_timeout(
+    pattern: str,
+    replacement: str,
+    source_text: str,
+    ignore_case: bool,
+    replace_all: bool,
+) -> str:
+    result_queue = mp.Queue(maxsize=1)
+    process = mp.Process(
+        target=_regex_sub_worker,
+        args=(
+            pattern,
+            replacement,
+            source_text,
+            ignore_case,
+            replace_all,
+            result_queue,
+        ),
+    )
+    process.start()
+    process.join(REGEX_TIMEOUT_SECONDS)
+
+    if process.is_alive():
+        process.terminate()
+        process.join()
+        raise asyncio.TimeoutError
+
+    if result_queue.empty():
+        return ""
+
+    status, result = result_queue.get()
+    if status == "regex_error":
+        raise re.error("invalid regex")
+
+    return result
 
 
 @app.on_message(
@@ -31,31 +88,31 @@ async def sed(_, message):
             to_fix = message.reply_to_message.caption
         else:
             return
-        try:
-            repl, repl_with, flags = sed_result
-        except Exception:
+        if not sed_result:
             return
+        repl, repl_with, flags = sed_result
 
         if not repl:
             return await message.reply_text(
-                "You're trying to replace... " "nothing with something?"
+                "You're trying to replace... nothing with something?"
             )
 
         try:
             if infinite_checker(repl):
                 return await message.reply_text("Nice try -_-")
 
-            if "i" in flags and "g" in flags:
-                text = re.sub(repl, repl_with, to_fix, flags=re.I).strip()
-            elif "i" in flags:
-                text = re.sub(
-                    repl, repl_with, to_fix, count=1, flags=re.I
-                ).strip()
-            elif "g" in flags:
-                text = re.sub(repl, repl_with, to_fix).strip()
-            else:
-                text = re.sub(repl, repl_with, to_fix, count=1).strip()
-        except sre_constants.error:
+            text = await asyncio.to_thread(
+                run_regex_with_timeout,
+                repl,
+                repl_with,
+                to_fix,
+                "i" in flags,
+                "g" in flags,
+            )
+            text = text.strip()
+        except asyncio.TimeoutError:
+            return await message.reply_text("Regex took too long to compute.")
+        except re.error:
             return
 
         # empty string errors -_-
@@ -75,8 +132,9 @@ def infinite_checker(repl):
         r"\(.{1,}\)\{.{1,}(,)?\}\(.*\)(\+|\* |\{.*\})",
     ]
     for match in regex:
-        status = re.search(match, repl)
-        return bool(status)
+        if re.search(match, repl):
+            return True
+    return False
 
 
 def separate_sed(sed_string):

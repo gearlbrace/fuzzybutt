@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 import re
 import secrets
 import string
@@ -34,8 +35,6 @@ from wbb import SUDOERS, USERBOT_PREFIX, app, app2, arq, eor
 from wbb.core.decorators.errors import capture_err
 from wbb.utils import random_line
 from wbb.utils.http import get
-from wbb.utils.json_prettify import json_prettify
-from wbb.utils.pastebin import paste
 
 __MODULE__ = "Misc"
 __HELP__ = """
@@ -60,9 +59,6 @@ __HELP__ = """
 /tr [LANGUAGE_CODE]
     Translate A Message
     Ex: /tr en
-
-/json [URL]
-    Get parsed JSON response from a rest API.
 
 /arq
     Statistics Of ARQ API.
@@ -166,9 +162,7 @@ async def rtfm(_, message):
     await message.delete()
     if not message.reply_to_message:
         return await message.reply_text("Reply To A Message lol")
-    await message.reply_to_message.reply_text(
-        "Are You Lost? READ THE FUCKING DOCS!"
-    )
+    await message.reply_to_message.reply_text("Are You Lost? READ THE FUCKING DOCS!")
 
 
 @app.on_message(filters.command("runs"))
@@ -222,16 +216,12 @@ async def getid(client, message):
 @capture_err
 async def random(_, message):
     if len(message.command) != 2:
-        return await message.reply_text(
-            '"/random" Needs An Argurment.' " Ex: `/random 5`"
-        )
+        return await message.reply_text('"/random" Needs An Argurment. Ex: `/random 5`')
     length = message.text.split(None, 1)[1]
     try:
         if 1 < int(length) < 1000:
             alphabet = string.ascii_letters + string.digits
-            password = "".join(
-                secrets.choice(alphabet) for i in range(int(length))
-            )
+            password = "".join(secrets.choice(alphabet) for i in range(int(length)))
             await message.reply_text(f"`{password}`")
         else:
             await message.reply_text("Specify A Length Between 1-1000")
@@ -265,30 +255,8 @@ async def tr(_, message):
     await message.reply_text(result.result.translatedText)
 
 
-@app.on_message(filters.command("json"))
-@capture_err
-async def json_fetch(_, message):
-    if len(message.command) != 2:
-        return await message.reply_text("/json [URL]")
-    url = message.text.split(None, 1)[1]
-    m = await message.reply_text("Fetching")
-    try:
-        data = await get(url)
-        data = await json_prettify(data)
-        if len(data) < 4090:
-            await m.edit(data)
-        else:
-            link = await paste(data)
-            await m.edit(
-                f"[OUTPUT_TOO_LONG]({link})",
-                disable_web_page_preview=True,
-            )
-    except Exception as e:
-        await m.edit(str(e))
-
-
 @app.on_message(filters.command(["kickme", "banme"]))
 async def kickbanme(_, message):
     await message.reply_text(
-        "Haha, it doesn't work that way, You're stuck with everyone here."
+        "Haha, it doesn't work that way, You're stuck here with everyone."
     )

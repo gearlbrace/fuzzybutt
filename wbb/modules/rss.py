@@ -19,7 +19,11 @@ from wbb.utils.dbfunctions import (
     remove_rss_feed,
     update_rss_feed,
 )
-from wbb.utils.functions import get_http_status_code, get_urls_from_text
+from wbb.utils.functions import (
+    get_http_status_code,
+    get_urls_from_text,
+    is_safe_url,
+)
 from wbb.utils.rss import Feed
 
 __MODULE__ = "RSS"
@@ -32,6 +36,13 @@ __HELP__ = f"""
     - You can only add one feed per chat.
     - Currently RSS and ATOM feeds are supported.
 """
+
+
+def get_parsed_feed_url(parsed, fallback: str) -> str:
+    href = parsed.get("href")
+    if isinstance(href, str) and href:
+        return href
+    return fallback
 
 
 async def rss_worker():
@@ -47,9 +58,20 @@ async def rss_worker():
             chat = _feed["chat_id"]
             try:
                 url = _feed["url"]
+                if not is_safe_url(url):
+                    await remove_rss_feed(chat)
+                    log.info(f"Removed RSS Feed from {chat} (Unsafe URL)")
+                    continue
+
                 last_title = _feed.get("last_title")
 
                 parsed = await loop.run_in_executor(None, parse, url)
+                final_url = get_parsed_feed_url(parsed, url)
+                if not is_safe_url(final_url):
+                    await remove_rss_feed(chat)
+                    log.info(f"Removed RSS Feed from {chat} (Unsafe redirect)")
+                    continue
+
                 feed = Feed(parsed)
 
                 if feed.title == last_title:
@@ -91,6 +113,9 @@ async def add_feed_func(_, m: Message):
         return await m.reply("[ERROR]: Invalid URL")
 
     url = urls[0]
+    if not is_safe_url(url):
+        return await m.reply("[ERROR]: URL is not allowed (SSRF protection).")
+
     status = await get_http_status_code(url)
     if status != 200:
         return await m.reply("[ERROR]: Invalid Url")
@@ -99,6 +124,10 @@ async def add_feed_func(_, m: Message):
     try:
         loop = get_event_loop()
         parsed = await loop.run_in_executor(None, parse, url)
+        final_url = get_parsed_feed_url(parsed, url)
+        if not is_safe_url(final_url):
+            return await m.reply("[ERROR]: URL is not allowed (SSRF protection).")
+
         feed = Feed(parsed)
     except Exception:
         return await m.reply(ns)
@@ -112,7 +141,7 @@ async def add_feed_func(_, m: Message):
         await m.reply(feed.parsed(), disable_web_page_preview=True)
     except Exception:
         return await m.reply(ns)
-    await add_rss_feed(chat_id, parsed.url, feed.title)
+    await add_rss_feed(chat_id, final_url, feed.title)
 
 
 @app.on_message(filters.command("rm_feed"))

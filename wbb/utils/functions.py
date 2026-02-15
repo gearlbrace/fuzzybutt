@@ -23,6 +23,8 @@ SOFTWARE.
 """
 
 import asyncio
+import ipaddress
+import socket
 
 from asyncio import gather
 from datetime import datetime, timedelta
@@ -30,10 +32,11 @@ from io import BytesIO
 from math import atan2, cos, radians, sin, sqrt
 from os import execvp
 from random import randint
-from re import findall, search
+from re import findall
 from re import sub as re_sub
 from sys import executable
 from typing import Dict
+from urllib.parse import urlparse
 
 import aiofiles
 import speedtest
@@ -64,9 +67,7 @@ def generate_captcha():
     def rndColor2():
         return (randint(32, 127), randint(32, 127), randint(32, 127))
 
-    wrong_answers = [
-        "".join(gen_letter() for _ in range(4)) for _ in range(8)
-    ]
+    wrong_answers = ["".join(gen_letter() for _ in range(4)) for _ in range(8)]
 
     width, height = 320, 100
     correct_answer = ""
@@ -89,8 +90,8 @@ def generate_captcha():
         draw.text((60 * t + 50, 15), letter, font=font, fill=rndColor2())
 
     image = image.filter(ImageFilter.BLUR)
-    
-    buf = BytesIO() # on memory
+
+    buf = BytesIO()  # on memory
     image.save(buf, "JPEG")
     buf.name = "captcha.jpg"
     buf.seek(0)
@@ -154,6 +155,40 @@ async def calc_distance_from_ip(ip1: str, ip2: str) -> float:
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     distance = Radius_Earth * c
     return distance
+
+
+def is_safe_url(url: str) -> bool:
+    """
+    Check if a URL is safe to fetch (prevents SSRF).
+    It ensures the URL uses http/https and that all resolved IPs are public.
+    """
+    try:
+        parsed = urlparse(url.strip())
+        if parsed.scheme not in {"http", "https"}:
+            return False
+
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+
+        port = parsed.port
+        if port is None:
+            port = 443 if parsed.scheme == "https" else 80
+
+        # Resolve all addresses (IPv4 + IPv6). URL is safe only if all are public.
+        address_info = socket.getaddrinfo(hostname, port, type=socket.SOCK_STREAM)
+        resolved_ips = {item[4][0] for item in address_info}
+        if not resolved_ips:
+            return False
+
+        for ip_addr in resolved_ips:
+            ip = ipaddress.ip_address(ip_addr)
+            if not ip.is_global:
+                return False
+
+        return True
+    except (ValueError, OSError):
+        return False
 
 
 def get_urls_from_text(text: str) -> bool:
@@ -349,19 +384,13 @@ async def get_data_and_name(replied_message, message):
     if len(text) > 1:
         name = text[0]
         data = text[1].strip()
-        if replied_message and (
-            replied_message.sticker or replied_message.video_note
-        ):
+        if replied_message and (replied_message.sticker or replied_message.video_note):
             data = None
     else:
-        if replied_message and (
-            replied_message.sticker or replied_message.video_note
-        ):
+        if replied_message and (replied_message.sticker or replied_message.video_note):
             data = None
         elif (
-            replied_message
-            and not replied_message.text
-            and not replied_message.caption
+            replied_message and not replied_message.text and not replied_message.caption
         ):
             data = None
         else:
@@ -383,7 +412,7 @@ async def get_data_and_name(replied_message, message):
 
 async def get_specific_usernames(client, user_ids: list) -> Dict[int, str]:
     def _fetch_users():
-        ids_str = ','.join(str(uid) for uid in user_ids)
+        ids_str = ",".join(str(uid) for uid in user_ids)
 
         with client.storage.conn:
             query = f"""
