@@ -1,20 +1,34 @@
-FROM python:3.12-slim-bullseye
-WORKDIR /wbb
-RUN chmod 777 /wbb
+# ============= BASE STAGE =============
+FROM python:3.12-slim-bullseye AS base
 
-RUN apt-get -qq update && apt-get -qq -y upgrade
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y git gcc build-essential
+WORKDIR /wbb
+
+ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 
-COPY requirements.txt .
+# install required system dependencies for python packages
+RUN apt-get update -y && apt-get install -y --no-install-recommends \
+    curl ca-certificates \
+    git gcc build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install -U pip setuptools wheel && pip3 install --no-cache-dir -U -r requirements.txt
+# install uv
+ADD https://astral.sh/uv/install.sh /uv-installer.sh
+RUN sh /uv-installer.sh && rm /uv-installer.sh
+
+ENV PATH="/root/.local/bin/:$PATH"
+
+COPY .python-version .
+COPY pyproject.toml .
+COPY uv.lock .
+
+# ============= PRODUCTION STAGE =============
+FROM base
+
+ENV UV_NO_DEV=1
+RUN uv sync
 
 COPY . .
 
-# If u want to use /update feature, uncomment the following and edit
-#RUN git config --global user.email "your_email"
-#RUN git config --global user.name "git_username"
-
 # Starting Bot
-ENTRYPOINT ["python3", "-m", "wbb"]
+ENTRYPOINT ["uv", "run", "python", "-m", "wbb"]
