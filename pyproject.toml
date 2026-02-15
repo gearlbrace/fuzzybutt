@@ -32,7 +32,7 @@ dependencies = [
     "telegraph~=2.2.0",
     "pytube~=15.0.0",
     "pytz~=2024.1",
-    "kurigram==2.2.18",
+    "kurigram==2.2.12",
 ]
 
 [dependency-groups]
