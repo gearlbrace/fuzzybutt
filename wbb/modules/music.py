@@ -24,13 +24,14 @@ SOFTWARE.
 
 import datetime
 import os
+import re
 from asyncio import get_running_loop
 from functools import partial
 from io import BytesIO
 
 import httpx
+import yt_dlp
 from pyrogram import filters
-from pytube import YouTube
 
 from wbb import aiohttpsession as session
 from wbb import app, arq
@@ -65,13 +66,26 @@ def download_youtube_audio(arq_resp):
     thumbnail_file = "thumbnail.png"
 
     url = f"https://youtube.com{r.url_suffix}"
-    yt = YouTube(url)
-    audio = yt.streams.filter(only_audio=True).get_audio_only()
 
-    out_file = audio.download()
-    base, _ = os.path.splitext(out_file)
-    audio_file = base + ".mp3"
-    os.rename(out_file, audio_file)
+    ydl_opts = {
+        "format": "bestaudio/best",
+        "outtmpl": "%(id)s.%(ext)s",
+        "postprocessors": [{
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "mp3",
+            "preferredquality": "192",
+        }],
+        "quiet": True,
+        "no_warnings": True,
+        "noplaylist": True,
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(url, download=True)
+        # Sanitize the video ID before using it as a filename to prevent
+        # path traversal in case a non-standard extractor returns a dirty ID.
+        safe_id = re.sub(r"[^\w\-]", "_", info["id"])
+        audio_file = f"{safe_id}.mp3"
 
     return [title, performer, duration, audio_file, thumbnail_file]
 
