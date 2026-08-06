@@ -288,6 +288,7 @@ async def inline_query_handler(client, query):
             )
 
         elif text.split()[0] == "exec":
+            # Open to all users. Code runs in the ARQ sandbox, not on this host.
             await execute_code(query)
 
         elif text.strip() == "tasks":

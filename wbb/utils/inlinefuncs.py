@@ -761,6 +761,8 @@ async def image_func(answers, query):
 
 
 async def execute_code(query):
+    # Public, no sudo check. ARQ runs the code remotely in its own sandbox,
+    # so the only local cost is ARQ API quota.
     text = query.query.strip()
     offset = int((query.offset or 0))
     answers = []
