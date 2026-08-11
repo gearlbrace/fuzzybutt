@@ -2,7 +2,12 @@
 
 from pyrogram.enums import ChatType, ParseMode
 from pyrogram.filters import command
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from pyrogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    LinkPreviewOptions,
+    Message,
+)
 
 from wbb import BOT_USERNAME, app
 
@@ -59,6 +64,6 @@ async def mkdwnhelp(_, m: Message):
         )
     else:
         await m.reply(
-            MARKDOWN, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+            MARKDOWN, parse_mode=ParseMode.HTML, link_preview_options=LinkPreviewOptions(is_disabled=True)
         )
     return

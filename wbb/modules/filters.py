@@ -29,6 +29,7 @@ from pyrogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    LinkPreviewOptions,
 )
 
 from wbb import app
@@ -216,7 +217,7 @@ async def filters_re(_, message):
                 await message.reply_text(
                     text=data,
                     reply_markup=keyb,
-                    disable_web_page_preview=True,
+                    link_preview_options=LinkPreviewOptions(is_disabled=True),
                 )
             else:
                 if not file_id:

@@ -38,6 +38,7 @@ from pyrogram.types import (
     InlineQueryResultArticle,
     InlineQueryResultCachedDocument,
     InputTextMessageContent,
+    LinkPreviewOptions,
 )
 from search_engine_parser import GoogleSearch
 
@@ -123,7 +124,7 @@ async def alive_function(answers):
             description="Check Bot's Stats",
             thumb_url="https://static2.aniimg.com/upload/20170515/414/c/d/7/cd7EEF.jpg",
             input_message_content=InputTextMessageContent(
-                msg, disable_web_page_preview=True
+                msg, link_preview_options=LinkPreviewOptions(is_disabled=True)
             ),
             reply_markup=buttons,
         )
@@ -149,7 +150,7 @@ async def google_search_func(answers, text):
                     title=i["titles"],
                     description=i["descriptions"],
                     input_message_content=InputTextMessageContent(
-                        msg, disable_web_page_preview=True
+                        msg, link_preview_options=LinkPreviewOptions(is_disabled=True)
                     ),
                 )
             )
@@ -210,7 +211,7 @@ async def tg_search_func(answers, text, user_id):
             description=message.text if message.text else "[NO_TEXT]",
             reply_markup=buttons,
             input_message_content=InputTextMessageContent(
-                caption, disable_web_page_preview=True
+                caption, link_preview_options=LinkPreviewOptions(is_disabled=True)
             ),
         )
         answers.append(result)
@@ -235,7 +236,7 @@ async def music_inline_func(answers, query):
                 title="ERROR",
                 description="Click Here To Know More.",
                 input_message_content=InputTextMessageContent(
-                    msg, disable_web_page_preview=True
+                    msg, link_preview_options=LinkPreviewOptions(is_disabled=True)
                 ),
             )
         )
@@ -382,7 +383,7 @@ async def info_inline_func(answers, peer):
         InlineQueryResultArticle(
             title="Found Peer.",
             input_message_content=InputTextMessageContent(
-                caption, disable_web_page_preview=True
+                caption, link_preview_options=LinkPreviewOptions(is_disabled=True)
             ),
         )
     )

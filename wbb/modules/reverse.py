@@ -32,7 +32,7 @@ import aiofiles
 import httpx
 from bs4 import BeautifulSoup
 from pyrogram import filters
-from pyrogram.types import InputMediaPhoto, Message
+from pyrogram.types import InputMediaPhoto, LinkPreviewOptions, Message
 
 from wbb import MESSAGE_DUMP_CHAT, SUDOERS, USERBOT_PREFIX, app, app2, eor
 from wbb.core.decorators.errors import capture_err
@@ -100,7 +100,7 @@ async def reverse_image_search(client, message: Message):
     except Exception:
         return await m.edit(
             f"**Result**: [Link]({location})",
-            disable_web_page_preview=True,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
         )
 
     # Pass if no images detected
@@ -146,5 +146,5 @@ async def reverse_image_search(client, message: Message):
 
     await m.edit(
         text,
-        disable_web_page_preview=True,
+        link_preview_options=LinkPreviewOptions(is_disabled=True),
     )

@@ -23,7 +23,7 @@ SOFTWARE.
 """
 from pykeyboard import InlineKeyboard
 from pyrogram import filters
-from pyrogram.types import InlineKeyboardButton, Message
+from pyrogram.types import InlineKeyboardButton, LinkPreviewOptions, Message
 
 from wbb import (
     BOT_ID,
@@ -65,7 +65,7 @@ async def sendLog(message: Message):
         LOG_GROUP_ID,
         text=msg,
         reply_markup=button,
-        disable_web_page_preview=True,
+        link_preview_options=LinkPreviewOptions(is_disabled=True),
     )
 
 

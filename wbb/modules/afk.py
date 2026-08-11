@@ -17,7 +17,7 @@ import asyncio
 from datetime import datetime, timedelta
 
 from pyrogram import Client, enums, filters
-from pyrogram.types import Message
+from pyrogram.types import LinkPreviewOptions, Message
 
 from wbb import app
 from wbb.utils.formatter import get_readable_time
@@ -133,7 +133,7 @@ async def active_afk(_, message: Message):
                         id=message.from_user.id,
                         tm=seenago,
                     ),
-                    disable_web_page_preview=True,
+                    link_preview_options=LinkPreviewOptions(is_disabled=True),
                 )
             elif afktype == "text_reason":
                 text = "**{usr}** [<code>{id}</code>] is back online and was away for {tm}\n\n**Reason:** `{reas}`\n\n"
@@ -144,13 +144,13 @@ async def active_afk(_, message: Message):
                         tm=seenago,
                         reas=reasonafk,
                     ),
-                    disable_web_page_preview=True,
+                    link_preview_options=LinkPreviewOptions(is_disabled=True),
                 )
         except Exception:
             text = "**{usr}** [<code>{id}</code>] is back online"
             send = await message.reply_text(
                 text.format(usr=message.from_user.first_name, id=message.from_user.id),
-                disable_web_page_preview=True,
+                link_preview_options=LinkPreviewOptions(is_disabled=True),
             )
         await track_for_cleanup(message.chat.id, send.id)
         return
@@ -595,7 +595,7 @@ async def afk_watcher_func(self: Client, message: Message):
             j += 1
     if msg != "":
         try:
-            send = await message.reply_text(msg, disable_web_page_preview=True)
+            send = await message.reply_text(msg, link_preview_options=LinkPreviewOptions(is_disabled=True))
         except Exception:
             pass
     try:

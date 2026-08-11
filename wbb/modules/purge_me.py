@@ -23,7 +23,7 @@ SOFTWARE.
 """
 
 from pyrogram import filters
-from pyrogram.types import Message
+from pyrogram.types import LinkPreviewOptions, Message
 
 from wbb import SUDOERS, USERBOT_ID, USERBOT_PREFIX, app2, eor, log, telegraph
 
@@ -99,7 +99,7 @@ async def get_help(_, message: Message):
     await eor(
         message,
         text=__HELP__,
-        disable_web_page_preview=True,
+        link_preview_options=LinkPreviewOptions(is_disabled=True),
     )
 
 

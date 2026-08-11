@@ -23,6 +23,7 @@ SOFTWARE.
 """
 
 from pyrogram import filters
+from pyrogram.types import LinkPreviewOptions
 
 from wbb import BOT_USERNAME, SUDOERS, USERBOT_PREFIX, app2
 from wbb.modules.userbot import eor
@@ -49,7 +50,7 @@ async def create(_, message):
         await eor(
             message,
             text=f"**Basicgroup Created: [{group_name}]({link.invite_link})**",
-            disable_web_page_preview=True,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
         )
     elif group_type == "s":  # for supergroup
         chat = await app2.create_supergroup(group_name, desc)
@@ -57,7 +58,7 @@ async def create(_, message):
         await eor(
             message,
             text=f"**Supergroup Created: [{group_name}]({link.invite_link})**",
-            disable_web_page_preview=True,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
         )
     elif group_type == "c":  # for channel
         chat = await app2.create_channel(group_name, desc)
@@ -65,5 +66,5 @@ async def create(_, message):
         await eor(
             message,
             text=f"**Channel Created: [{group_name}]({link.invite_link})**",
-            disable_web_page_preview=True,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
         )

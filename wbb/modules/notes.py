@@ -29,6 +29,7 @@ from pyrogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    LinkPreviewOptions,
 )
 
 from wbb import SUDOERS, USERBOT_ID, USERBOT_PREFIX, app, app2, eor
@@ -242,7 +243,7 @@ async def get_reply(message, type, file_id, data, keyb):
         await message.reply_text(
             text=data,
             reply_markup=keyb,
-            disable_web_page_preview=True,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
         )
     if type == "sticker":
         await message.reply_sticker(

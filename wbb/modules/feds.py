@@ -29,7 +29,11 @@ import html
 from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus, ChatType, ParseMode
 from pyrogram.errors import FloodWait, PeerIdInvalid, ChatAdminRequired
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    LinkPreviewOptions,
+)
 
 from wbb import BOT_ID, LOG_GROUP_ID, SUDOERS, app
 from wbb.core.decorators.errors import capture_err
@@ -757,11 +761,11 @@ __**New Federation Ban**__
         m2 = await app.send_message(
             info["log_group_id"],
             text=ban_text,
-            disable_web_page_preview=True,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
         )
         await m.edit(
             f"Fed Banned {user.mention} !\nAction Log: {m2.link}",
-            disable_web_page_preview=True,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
         )
     except Exception:
         await message.reply_text(
@@ -858,11 +862,11 @@ __**New Federation UnBan**__
         m2 = await app.send_message(
             info["log_group_id"],
             text=ban_text,
-            disable_web_page_preview=True,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
         )
         await m.edit(
             f"Fed UnBanned {user.mention} !\nAction Log: {m2.link}",
-            disable_web_page_preview=True,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
         )
     except Exception:
         await message.reply_text(

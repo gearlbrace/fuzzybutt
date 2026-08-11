@@ -30,6 +30,7 @@ from io import BytesIO
 
 import yt_dlp
 from pyrogram import filters
+from pyrogram.types import LinkPreviewOptions
 
 from wbb import aiohttpsession as session
 from wbb import app
@@ -101,7 +102,7 @@ async def music(_, message):
             "Another download is in progress, try again after sometime."
         )
     is_downloading = True
-    m = await message.reply_text(f"Downloading {url}", disable_web_page_preview=True)
+    m = await message.reply_text(f"Downloading {url}", link_preview_options=LinkPreviewOptions(is_disabled=True))
     try:
         loop = get_running_loop()
         music = await loop.run_in_executor(

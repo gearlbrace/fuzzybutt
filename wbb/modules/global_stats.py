@@ -26,6 +26,7 @@ import asyncio
 from pyrogram import filters
 from pyrogram.enums import ChatType
 from pyrogram.errors import FloodWait
+from pyrogram.types import LinkPreviewOptions
 
 from wbb import BOT_ID, BOT_NAME, SUDOERS, USERBOT_NAME, app, app2
 from wbb.core.decorators.errors import capture_err
@@ -83,7 +84,7 @@ async def global_stats(_, message):
     m = await app.send_message(
         message.chat.id,
         text="__**Analysing Stats...**__",
-        disable_web_page_preview=True,
+        link_preview_options=LinkPreviewOptions(is_disabled=True),
     )
 
     # For bot served chat and users count
@@ -164,4 +165,4 @@ async def global_stats(_, message):
     **{bots_ub} Bots.**
     **{privates_ub} Users.**
 """
-    await m.edit(msg, disable_web_page_preview=True)
+    await m.edit(msg, link_preview_options=LinkPreviewOptions(is_disabled=True))

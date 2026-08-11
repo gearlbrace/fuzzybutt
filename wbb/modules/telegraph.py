@@ -1,5 +1,5 @@
 from pyrogram import filters
-from pyrogram.types import Message
+from pyrogram.types import LinkPreviewOptions, Message
 
 from wbb import app, telegraph
 from wbb.core.decorators.errors import capture_err
@@ -25,5 +25,5 @@ async def paste(_, message: Message):
     )
     return await message.reply(
         f"**Posted:** {page['url']}",
-        disable_web_page_preview=True,
+        link_preview_options=LinkPreviewOptions(is_disabled=True),
     )

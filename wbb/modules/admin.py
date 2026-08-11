@@ -34,6 +34,7 @@ from pyrogram.types import (
     ChatMemberUpdated,
     ChatPermissions,
     ChatPrivileges,
+    LinkPreviewOptions,
     Message,
 )
 
@@ -558,12 +559,12 @@ async def pin(_, message: Message):
         await r.unpin()
         return await message.reply_text(
             f"**Unpinned [this]({r.link}) message.**",
-            disable_web_page_preview=True,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
         )
     await r.pin(disable_notification=True)
     await message.reply(
         f"**Pinned [this]({r.link}) message.**",
-        disable_web_page_preview=True,
+        link_preview_options=LinkPreviewOptions(is_disabled=True),
     )
     msg = "Please check the pinned message: ~ " + f"[Check, {r.link}]"
     filter_ = dict(type="text", data=msg)
@@ -858,7 +859,7 @@ async def invite(_, message):
         text = f"Here's This Group's Invite Link.\n\n{link}"
         if message.reply_to_message:
             await message.reply_to_message.reply_text(
-                text, disable_web_page_preview=True
+                text, link_preview_options=LinkPreviewOptions(is_disabled=True)
             )
         else:
-            await message.reply_text(text, disable_web_page_preview=True)
+            await message.reply_text(text, link_preview_options=LinkPreviewOptions(is_disabled=True))

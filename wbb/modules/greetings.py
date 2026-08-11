@@ -41,6 +41,7 @@ from pyrogram.types import (
     ChatMemberUpdated,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    LinkPreviewOptions,
     Message,
     User,
 )
@@ -336,7 +337,7 @@ async def send_welcome_message(chat: Chat, user_id: int, delete: bool = False):
                 chat.id,
                 text=text,
                 reply_markup=keyb,
-                disable_web_page_preview=True,
+                link_preview_options=LinkPreviewOptions(is_disabled=True),
             )
         elif welcome == "Photo":
             m = await app.send_photo(
