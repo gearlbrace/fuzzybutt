@@ -31,16 +31,13 @@ from re import findall
 
 from pyrogram import enums, filters
 
-from wbb import SUDOERS, USERBOT_PREFIX, app, app2, arq, eor
+from wbb import SUDOERS, USERBOT_PREFIX, app, app2, eor
 from wbb.core.decorators.errors import capture_err
 from wbb.utils import random_line
 from wbb.utils.http import get
 
 __MODULE__ = "Misc"
 __HELP__ = """
-/asq
-    Ask a question
-
 /commit
     Generate Funny Commit Messages
 
@@ -56,13 +53,6 @@ __HELP__ = """
 /cheat [Language] [Query]
     Get Programming Related Help
 
-/tr [LANGUAGE_CODE]
-    Translate A Message
-    Ex: /tr en
-
-/arq
-    Statistics Of ARQ API.
-
 /webss | .webss [URL] [FULL_SIZE?, use (y|yes|true) to get full size image. (optional)]
     Take A Screenshot Of A Webpage
 
@@ -74,9 +64,6 @@ __HELP__ = """
 
 /tts
     Convert Text To Speech.
-
-/autocorrect [Reply to a message]
-    Autocorrects the text in replied message.
 
 /pdf [Reply to an image (as document) or a group of images.]
     Convert images to PDF, helpful for online classes.
@@ -93,7 +80,6 @@ __HELP__ = """
 #RTFM - Tell noobs to read the manual
 """
 
-ASQ_LOCK = Lock()
 PING_LOCK = Lock()
 
 
@@ -133,23 +119,6 @@ async def ping_handler(_, message):
                 # There's a cross emoji here, but it's invisible.
                 text += f"    **{dc.upper}:** ❌\n"
         await m.edit(text)
-
-
-@app.on_message(filters.command("asq"))
-async def asq(_, message):
-    err = "Reply to text message or pass the question as argument"
-    if message.reply_to_message:
-        if not message.reply_to_message.text:
-            return await message.reply(err)
-        question = message.reply_to_message.text
-    else:
-        if len(message.command) < 2:
-            return await message.reply(err)
-        question = message.text.split(None, 1)[1]
-    m = await message.reply("Thinking...")
-    async with ASQ_LOCK:
-        resp = await arq.asq(question)
-        await m.edit(resp.result)
 
 
 @app.on_message(filters.command("commit"))
@@ -229,30 +198,6 @@ async def random(_, message):
         await message.reply_text(
             "Strings Won't Work!, Pass A Positive Integer Less Than 1000"
         )
-
-
-# Translate
-@app.on_message(filters.command("tr"))
-@capture_err
-async def tr(_, message):
-    if len(message.command) != 2:
-        return await message.reply_text("/tr [LANGUAGE_CODE]")
-    lang = message.text.split(None, 1)[1]
-    if not message.reply_to_message or not lang:
-        return await message.reply_text(
-            "Reply to a message with /tr [language code]"
-            + "\nGet supported language list from here -"
-            + " https://py-googletrans.readthedocs.io/en"
-            + "/latest/#googletrans-languages"
-        )
-    reply = message.reply_to_message
-    text = reply.text or reply.caption
-    if not text:
-        return await message.reply_text("Reply to a text to translate it")
-    result = await arq.translate(text, lang)
-    if not result.ok:
-        return await message.reply_text(result.result)
-    await message.reply_text(result.result.translatedText)
 
 
 @app.on_message(filters.command(["kickme", "banme"]))
