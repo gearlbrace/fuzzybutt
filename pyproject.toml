@@ -30,3 +30,13 @@ dependencies = [
 dev = [
     "ruff>=0.9.0",
 ]
+
+[tool.uv]
+# pyromod depends on the real "pyrogram" package from PyPI, which collides
+# with kurigram (installs itself under the same "pyrogram" import path) --
+# left alone, uv installs both, and whichever's files land last in
+# site-packages/pyrogram wins per-file, silently mixing two versions'
+# code together (this is what broke session storage). kurigram already
+# provides everything pyromod imports as `pyrogram`, so tell the resolver
+# to never actually install the real one: the marker is always false.
+override-dependencies = ["pyrogram; python_version < '0'"]
