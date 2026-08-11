@@ -23,6 +23,7 @@ SOFTWARE.
 """
 
 import asyncio
+import os
 from re import findall
 from datetime import datetime, timedelta
 from random import shuffle
@@ -48,12 +49,22 @@ from wbb import BOT_USERNAME, SUDOERS, WELCOME_DELAY_KICK_SEC, app
 from wbb.core.decorators.errors import capture_err
 from wbb.core.decorators.permissions import adminsOnly
 from wbb.core.keyboard import ikb
+from wbb.modules.admin import member_permissions
 from wbb.modules.notes import extract_urls
+from wbb.utils.captcha import (
+    SUPPORTED_EMOJIS,
+    make_captcha,
+    generate_rnd_id,
+    make_captcha_markup,
+)
 from wbb.utils.dbfeds import check_banned_user, get_fed_id
 from wbb.utils.dbfunctions import (
+    captcha_mode,
     captcha_off,
     captcha_on,
     del_welcome,
+    ecap_off,
+    ecap_on,
     get_captcha_cache,
     get_welcome,
     has_solved_captcha_once,
@@ -73,6 +84,8 @@ from wbb.utils.functions import (
 __MODULE__ = "Greetings"
 __HELP__ = """
 /captcha [ENABLE|DISABLE] - Enable/Disable captcha.
+
+/captcha mode - To switch between emoji and text captcha verification method.
 
 /set_welcome - Reply this to a message containing correct
 format for a welcome message, check end of this message.
@@ -103,6 +116,7 @@ Checkout /markdownhelp to know more about formattings and other syntax.
 """
 
 answers_dicc = []
+CaptchaDB = {}
 loop = asyncio.get_running_loop()
 
 
@@ -156,6 +170,10 @@ async def handle_new_member(member, chat):
         # someday
         if await has_solved_captcha_once(chat.id, member.id):
             return
+
+        mode = await captcha_mode(chat.id)
+        if mode == "emoji":
+            return await emoji_handler(member, chat)
 
         await chat.restrict_member(member.id, ChatPermissions())
         text = (
@@ -231,6 +249,53 @@ async def handle_new_member(member, chat):
     )
     await asyncio.sleep(0.5)
 
+
+async def emoji_handler(member, chat):
+    try:
+        await chat.restrict_member(member.id, ChatPermissions())
+        answer, captcha_image = make_captcha(generate_rnd_id())
+        correct_emojis = answer.split(": ", 1)[-1].split()
+
+        decoys = [e for e in SUPPORTED_EMOJIS if e not in correct_emojis]
+        shuffle(decoys)
+        show = correct_emojis + decoys[:9]
+        shuffle(show)
+
+        markup = [
+            [
+                InlineKeyboardButton(
+                    emoji,
+                    callback_data=f"verify_{member.id}_{emoji}",
+                )
+                for emoji in show[i : i + 5]
+            ]
+            for i in range(0, 15, 5)
+        ]
+
+        CaptchaDB[member.id] = {
+            "emojis": correct_emojis,
+            "mistakes": 0,
+            "group_id": chat.id,
+            "message_id": None,
+        }
+        message = await app.send_photo(
+            chat_id=chat.id,
+            photo=captcha_image,
+            caption=f"{member.mention}, select all the emojis you can see in the picture. "
+            "You are allowed only (3) mistakes.",
+            reply_markup=InlineKeyboardMarkup(markup),
+        )
+        os.remove(captcha_image)
+        CaptchaDB[member.id]["message_id"] = message.id
+        await asyncio.sleep(300)
+        await message.delete()
+        user = await chat.get_member(member.id)
+        if user.status == ChatMemberStatus.RESTRICTED:
+            until_date = datetime.now() + timedelta(seconds=300)
+            await chat.ban_member(member.id, until_date=until_date)
+            del CaptchaDB[member.id]
+    except Exception as e:
+        print(e)
 
 
 @app.on_chat_member_updated(filters.group, group=welcome_captcha_group)
@@ -408,6 +473,86 @@ async def _ban_restricted_user_until_date(
         pass
 
 
+@app.on_callback_query(filters.regex("verify_(.*)"))
+async def buttons_handlers(_, cb):
+    emoji = cb.data.rsplit("_", 1)[-1]
+    user_id = cb.data.split("_")[1]
+    if str(cb.from_user.id) != user_id:
+        return await cb.answer("This message is not for you!", show_alert=True)
+    if cb.from_user.id not in CaptchaDB:
+        await cb.answer("Try again after re-joining!", show_alert=True)
+        await cb.message.chat.ban_member(cb.from_user.id)
+        await cb.message.delete()
+        await cb.message.chat.unban_member(cb.from_user.id)
+        return
+    if emoji not in CaptchaDB[cb.from_user.id]["emojis"]:
+        CaptchaDB[cb.from_user.id]["mistakes"] += 1
+        await cb.answer("You pressed the wrong emoji!", show_alert=True)
+        remaining = 3 - CaptchaDB[cb.from_user.id]["mistakes"]
+        if remaining <= 0:
+            await cb.message.delete()
+            await app.send_message(
+                chat_id=cb.message.chat.id,
+                text=f"{cb.from_user.mention}, you failed to solve the captcha!\n\n"
+                "You can try again after 5 minutes.",
+            )
+            del CaptchaDB[cb.from_user.id]
+            until_date = datetime.now() + timedelta(seconds=300)
+            await cb.message.chat.ban_member(cb.from_user.id, until_date=until_date)
+            return
+        markup = make_captcha_markup(
+            cb.message.reply_markup.inline_keyboard, emoji, "❌"
+        )
+        await cb.message.edit_caption(
+            caption=f"{cb.from_user.mention}, select all the emojis you can see in the picture. "
+            f"You are allowed only ({remaining}) mistakes.",
+            reply_markup=InlineKeyboardMarkup(markup),
+        )
+        return
+
+    CaptchaDB[cb.from_user.id]["emojis"].remove(emoji)
+    markup = make_captcha_markup(cb.message.reply_markup.inline_keyboard, emoji, "✅")
+    await cb.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(markup))
+    if CaptchaDB[cb.from_user.id]["emojis"]:
+        await cb.answer()
+        return
+
+    await cb.answer("You passed the captcha!", show_alert=True)
+    del CaptchaDB[cb.from_user.id]
+    try:
+        user_on_chat = await app.get_chat_member(
+            chat_id=cb.message.chat.id, user_id=cb.from_user.id
+        )
+        if user_on_chat.restricted_by.id == (await app.get_me()).id:
+            await app.unban_chat_member(
+                chat_id=cb.message.chat.id, user_id=cb.from_user.id
+            )
+    except Exception:
+        pass
+    await cb.message.delete()
+    await send_welcome_message(cb.message.chat, cb.from_user.id, True)
+
+
+@app.on_callback_query(filters.regex("cmode_(.*)"))
+async def ecap_cb(_, cb):
+    chat_id = cb.message.chat.id
+    permissions = await member_permissions(chat_id, cb.from_user.id)
+    permission = "can_change_info"
+    if permission not in permissions:
+        return await cb.answer(
+            f"You don't have the required permission.\nPermission: {permission}",
+            show_alert=True,
+        )
+    mode = cb.data.split("_")[1]
+    if mode == "text":
+        await ecap_off(chat_id)
+        buttons = {"Text": "cmode_emoji"}
+    else:
+        await ecap_on(chat_id, "emoji")
+        buttons = {"Emoji": "cmode_text"}
+    await cb.message.edit_reply_markup(reply_markup=ikb(buttons, 1))
+
+
 @app.on_message(filters.command("captcha") & ~filters.private)
 @adminsOnly("can_restrict_members")
 async def captcha_state(_, message):
@@ -424,6 +569,12 @@ async def captcha_state(_, message):
     elif state == "disable":
         await captcha_off(chat_id)
         await message.reply_text("Disabled Captcha For New Users.")
+    elif state == "mode":
+        mode = await captcha_mode(chat_id)
+        buttons = {"Text": "cmode_emoji"} if mode == "text" else {"Emoji": "cmode_text"}
+        await message.reply_text(
+            "**Current captcha mode:**", reply_markup=ikb(buttons, 1)
+        )
     else:
         await message.reply_text(usage)
 

@@ -158,3 +158,9 @@ permissions.json
 .vscode
 .idea
 *.env
+
+# Emoji captcha: font is a ~45MB third-party download, not committed.
+# See README for the download step. Its background template IS committed
+# despite the blanket *.png rule above.
+AppleColorEmoji.ttf
+!assets/background.png

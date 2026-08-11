@@ -44,6 +44,9 @@ gbansdb = db.gban
 captchadb = db.captcha
 solved_captcha_db = db.solved_captcha
 captcha_cachedb = db.captcha_cache
+emoji_captchadb = db.emoji_captcha
+afkdb = db.afk
+afk_cleanmode_db = db.afk_cleanmode
 antiservicedb = db.antiservice
 pmpermitdb = db.pmpermit
 welcomedb = db.welcome_text
@@ -721,3 +724,60 @@ async def flood_off(chat_id: int):
     if not is_flood:
         return
     return await flood_toggle_db.insert_one({"chat_id": chat_id})
+
+
+async def captcha_mode(chat_id: int) -> str:
+    data = await emoji_captchadb.find_one({"chat_id": chat_id})
+    if data:
+        return data.get("mode", "text")
+    return "text"
+
+
+async def ecap_on(chat_id: int, mode: str):
+    return await emoji_captchadb.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"mode": mode}},
+        upsert=True,
+    )
+
+
+async def ecap_off(chat_id: int):
+    return await emoji_captchadb.delete_one({"chat_id": chat_id})
+
+
+async def is_afk(user_id: int):
+    user = await afkdb.find_one({"user_id": user_id})
+    return (True, user["reason"]) if user else (False, {})
+
+
+async def add_afk(user_id: int, details: dict):
+    await afkdb.update_one(
+        {"user_id": user_id}, {"$set": {"reason": details}}, upsert=True
+    )
+
+
+async def remove_afk(user_id: int):
+    user = await afkdb.find_one({"user_id": user_id})
+    if user:
+        return await afkdb.delete_one({"user_id": user_id})
+
+
+async def is_afk_cleanmode_on(chat_id: int) -> bool:
+    chat = await afk_cleanmode_db.find_one({"chat_id": chat_id})
+    if not chat:
+        return True
+    return False
+
+
+async def afk_cleanmode_on(chat_id: int):
+    is_on = await is_afk_cleanmode_on(chat_id)
+    if is_on:
+        return
+    return await afk_cleanmode_db.delete_one({"chat_id": chat_id})
+
+
+async def afk_cleanmode_off(chat_id: int):
+    is_on = await is_afk_cleanmode_on(chat_id)
+    if not is_on:
+        return
+    return await afk_cleanmode_db.insert_one({"chat_id": chat_id})
