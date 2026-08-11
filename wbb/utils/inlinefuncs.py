@@ -23,24 +23,21 @@ SOFTWARE.
 """
 import asyncio
 import sys
-from contextlib import suppress
 from sys import version as pyver
 from time import ctime, time
 
 from motor import version as mongover
 from pykeyboard import InlineKeyboard
 from pyrogram import __version__ as pyrover
-from pyrogram import enums, filters
+from pyrogram import filters
 from pyrogram.raw.functions import Ping
 from pyrogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
     InlineQueryResultArticle,
-    InlineQueryResultCachedDocument,
     InputTextMessageContent,
     LinkPreviewOptions,
 )
-from search_engine_parser import GoogleSearch
 
 from wbb import (
     BOT_USERNAME,
@@ -61,8 +58,6 @@ keywords_list = [
     "search",
     "ping",
     "info",
-    "google",
-    "music",
 ]
 
 
@@ -132,31 +127,6 @@ async def alive_function(answers):
     return answers
 
 
-async def google_search_func(answers, text):
-    gresults = await GoogleSearch().async_search(text)
-    limit = 0
-    for i in gresults:
-        if limit > 48:
-            break
-        limit += 1
-
-        with suppress(KeyError):
-            msg = f"""
-[{i['titles']}]({i['links']})
-{i['descriptions']}"""
-
-            answers.append(
-                InlineQueryResultArticle(
-                    title=i["titles"],
-                    description=i["descriptions"],
-                    input_message_content=InputTextMessageContent(
-                        msg, link_preview_options=LinkPreviewOptions(is_disabled=True)
-                    ),
-                )
-            )
-    return answers
-
-
 async def tg_search_func(answers, text, user_id):
     if user_id not in SUDOERS:
         msg = "**ERROR**\n__THIS FEATURE IS ONLY FOR SUDO USERS__"
@@ -216,51 +186,6 @@ async def tg_search_func(answers, text, user_id):
         )
         answers.append(result)
     return answers
-
-
-async def music_inline_func(answers, query):
-    chat_id = -1001445180719
-    group_invite = "https://t.me/joinchat/vSDE2DuGK4Y4Nzll"
-    try:
-        messages = [
-            m
-            async for m in app2.search_messages(
-                chat_id, query, filter=enums.MessagesFilter.AUDIO, limit=100
-            )
-        ]
-    except Exception as e:
-        print(e)
-        msg = f"You Need To Join Here With Your Bot And Userbot To Get Cached Music.\n{group_invite}"
-        answers.append(
-            InlineQueryResultArticle(
-                title="ERROR",
-                description="Click Here To Know More.",
-                input_message_content=InputTextMessageContent(
-                    msg, link_preview_options=LinkPreviewOptions(is_disabled=True)
-                ),
-            )
-        )
-        return answers
-    messages_ids_and_duration = []
-    for f_ in messages:
-        messages_ids_and_duration.append(
-            {
-                "id": f_.id,
-                "duration": f_.audio.duration if f_.audio.duration else 0,
-            }
-        )
-    messages = list(
-        {v["duration"]: v for v in messages_ids_and_duration}.values()
-    )
-    messages_ids = [ff_["id"] for ff_ in messages]
-    messages = await app.get_messages(chat_id, messages_ids[0:48])
-    return [
-        InlineQueryResultCachedDocument(
-            document_file_id=message_.audio.file_id,
-            title=message_.audio.title,
-        )
-        for message_ in messages
-    ]
 
 
 async def speedtest_init(query):

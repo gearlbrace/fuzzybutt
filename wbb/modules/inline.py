@@ -36,7 +36,7 @@ __HELP__ = f"""
 Send /inline for help related to inline.
 
 **Example Usage:**
-`@{BOT_USERNAME} google github`
+`@{BOT_USERNAME} search github`
 """
 
 
@@ -68,21 +68,6 @@ async def inline_query_handler(client, query):
             await client.answer_inline_query(
                 query.id, results=answerss, cache_time=10
             )
-        elif text.split()[0] == "google":
-            if len(text.split()) < 2:
-                return await client.answer_inline_query(
-                    query.id,
-                    results=answers,
-                    switch_pm_text="Google Search | google [QUERY]",
-                    switch_pm_parameter="inline",
-                )
-            tex = text.split(None, 1)[1].strip()
-            answerss = await google_search_func(answers, tex)
-            await client.answer_inline_query(
-                query.id,
-                results=answerss,
-            )
-
         elif text.split()[0] == "search":
             if len(text.split()) < 2:
                 return await client.answer_inline_query(
@@ -94,20 +79,6 @@ async def inline_query_handler(client, query):
             user_id = query.from_user.id
             tex = text.split(None, 1)[1].strip()
             answerss = await tg_search_func(answers, tex, user_id)
-            await client.answer_inline_query(
-                query.id, results=answerss, cache_time=2
-            )
-
-        elif text.split()[0] == "music":
-            if len(text.split()) < 2:
-                return await client.answer_inline_query(
-                    query.id,
-                    results=answers,
-                    switch_pm_text="Music Search | music [QUERY]",
-                    switch_pm_parameter="inline",
-                )
-            tex = text.split(None, 1)[1].strip()
-            answerss = await music_inline_func(answers, tex)
             await client.answer_inline_query(
                 query.id, results=answerss, cache_time=2
             )
