@@ -34,9 +34,9 @@ from pyrogram.types import InlineKeyboardMarkup, LinkPreviewOptions
 
 from wbb import (
     BOT_ID,
+    BOT_NAME,
     GBAN_LOG_GROUP_ID,
     SUDOERS,
-    USERBOT_USERNAME,
     app,
     bot_start_time,
 )
@@ -80,12 +80,15 @@ __HELP__ = """
 
 async def bot_sys_stats():
     bot_uptime = int(time.time() - bot_start_time)
-    cpu = psutil.cpu_percent()
+    # cpu_percent() needs a blocking sample window to report a real reading
+    # (a bare call only compares against the last call, which nothing else makes);
+    # run it off the event loop so it doesn't stall the bot for the sample duration.
+    cpu = await asyncio.to_thread(psutil.cpu_percent, 0.5)
     mem = psutil.virtual_memory().percent
     disk = psutil.disk_usage("/").percent
     process = psutil.Process(os.getpid())
     stats = f"""
-{USERBOT_USERNAME}@William
+{BOT_NAME} — System Stats
 ------------------
 UPTIME: {formatter.get_readable_time(bot_uptime)}
 BOT: {round(process.memory_info()[0] / 1024 ** 2)} MB
