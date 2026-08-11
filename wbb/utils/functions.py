@@ -23,8 +23,6 @@ SOFTWARE.
 """
 
 import asyncio
-import ipaddress
-import socket
 
 from asyncio import gather
 from datetime import datetime, timedelta
@@ -36,7 +34,6 @@ from re import findall
 from re import sub as re_sub
 from sys import executable
 from typing import Dict
-from urllib.parse import urlparse
 
 import aiofiles
 import speedtest
@@ -115,11 +112,6 @@ def test_speedtest():
     return [speed_convert(download), speed_convert(upload), info]
 
 
-async def get_http_status_code(url: str) -> int:
-    async with aiosession.head(url) as resp:
-        return resp.status
-
-
 async def make_carbon(code):
     url = "https://carbonara.solopov.dev/api/cook"
     async with aiosession.post(url, json={"code": code}) as resp:
@@ -155,40 +147,6 @@ async def calc_distance_from_ip(ip1: str, ip2: str) -> float:
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     distance = Radius_Earth * c
     return distance
-
-
-def is_safe_url(url: str) -> bool:
-    """
-    Check if a URL is safe to fetch (prevents SSRF).
-    It ensures the URL uses http/https and that all resolved IPs are public.
-    """
-    try:
-        parsed = urlparse(url.strip())
-        if parsed.scheme not in {"http", "https"}:
-            return False
-
-        hostname = parsed.hostname
-        if not hostname:
-            return False
-
-        port = parsed.port
-        if port is None:
-            port = 443 if parsed.scheme == "https" else 80
-
-        # Resolve all addresses (IPv4 + IPv6). URL is safe only if all are public.
-        address_info = socket.getaddrinfo(hostname, port, type=socket.SOCK_STREAM)
-        resolved_ips = {item[4][0] for item in address_info}
-        if not resolved_ips:
-            return False
-
-        for ip_addr in resolved_ips:
-            ip = ipaddress.ip_address(ip_addr)
-            if not ip.is_global:
-                return False
-
-        return True
-    except (ValueError, OSError):
-        return False
 
 
 def get_urls_from_text(text: str) -> bool:

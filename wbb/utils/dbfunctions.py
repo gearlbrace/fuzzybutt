@@ -41,7 +41,6 @@ karmadb = db.karma
 chatsdb = db.chats
 usersdb = db.users
 gbansdb = db.gban
-coupledb = db.couple
 captchadb = db.captcha
 solved_captcha_db = db.solved_captcha
 captcha_cachedb = db.captcha_cache
@@ -54,7 +53,6 @@ sudoersdb = db.sudoers
 blacklist_chatdb = db.blacklistChat
 restart_stagedb = db.restart_stage
 flood_toggle_db = db.flood_toggle
-rssdb = db.rss
 rulesdb = db.rules
 
 
@@ -420,30 +418,6 @@ async def remove_gban_user(user_id: int):
     return await gbansdb.delete_one({"user_id": user_id})
 
 
-async def _get_lovers(chat_id: int):
-    lovers = await coupledb.find_one({"chat_id": chat_id})
-    if not lovers:
-        return {}
-    return lovers["couple"]
-
-
-async def get_couple(chat_id: int, date: str):
-    lovers = await _get_lovers(chat_id)
-    if date in lovers:
-        return lovers[date]
-    return False
-
-
-async def save_couple(chat_id: int, date: str, couple: dict):
-    lovers = await _get_lovers(chat_id)
-    lovers[date] = couple
-    await coupledb.update_one(
-        {"chat_id": chat_id},
-        {"$set": {"couple": lovers}},
-        upsert=True,
-    )
-
-
 async def is_captcha_on(chat_id: int) -> bool:
     chat = await captchadb.find_one({"chat_id": chat_id})
     if not chat:
@@ -747,44 +721,3 @@ async def flood_off(chat_id: int):
     if not is_flood:
         return
     return await flood_toggle_db.insert_one({"chat_id": chat_id})
-
-
-async def add_rss_feed(chat_id: int, url: str, last_title: str):
-    return await rssdb.update_one(
-        {"chat_id": chat_id},
-        {"$set": {"url": url, "last_title": last_title}},
-        upsert=True,
-    )
-
-
-async def remove_rss_feed(chat_id: int):
-    return await rssdb.delete_one({"chat_id": chat_id})
-
-
-async def update_rss_feed(chat_id: int, last_title: str):
-    return await rssdb.update_one(
-        {"chat_id": chat_id},
-        {"$set": {"last_title": last_title}},
-        upsert=True,
-    )
-
-
-async def is_rss_active(chat_id: int) -> bool:
-    return await rssdb.find_one({"chat_id": chat_id})
-
-
-async def get_rss_feeds() -> list:
-    data = []
-    async for feed in rssdb.find({"chat_id": {"$exists": 1}}):
-        data.append(
-            dict(
-                chat_id=feed["chat_id"],
-                url=feed["url"],
-                last_title=feed["last_title"],
-            )
-        )
-    return data
-
-
-async def get_rss_feeds_count() -> int:
-    return len([i async for i in rssdb.find({"chat_id": {"$exists": 1}})])
