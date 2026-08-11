@@ -23,20 +23,15 @@ SOFTWARE.
 """
 
 import asyncio
-import ipaddress
-import socket
 
-from asyncio import gather
 from datetime import datetime, timedelta
 from io import BytesIO
-from math import atan2, cos, radians, sin, sqrt
 from os import execvp
 from random import randint
 from re import findall
 from re import sub as re_sub
 from sys import executable
 from typing import Dict
-from urllib.parse import urlparse
 
 import aiofiles
 import speedtest
@@ -47,7 +42,7 @@ from pyrogram.types import Message
 
 from wbb import aiohttpsession as aiosession
 from wbb.utils.dbfunctions import start_restart_stage
-from wbb.utils.http import get, post
+from wbb.utils.http import post
 
 
 async def restart(m: Message):
@@ -115,11 +110,6 @@ def test_speedtest():
     return [speed_convert(download), speed_convert(upload), info]
 
 
-async def get_http_status_code(url: str) -> int:
-    async with aiosession.head(url) as resp:
-        return resp.status
-
-
 async def make_carbon(code):
     url = "https://carbonara.solopov.dev/api/cook"
     async with aiosession.post(url, json={"code": code}) as resp:
@@ -137,58 +127,6 @@ async def transfer_sh(file_or_message):
         resp = await post("https://transfer.sh/", data=params)
         url = resp.strip()
     return url
-
-
-async def calc_distance_from_ip(ip1: str, ip2: str) -> float:
-    Radius_Earth = 6371.0088
-    data1, data2 = await gather(
-        get(f"http://ipinfo.io/{ip1}"),
-        get(f"http://ipinfo.io/{ip2}"),
-    )
-    lat1, lon1 = data1["loc"].split(",")
-    lat2, lon2 = data2["loc"].split(",")
-    lat1, lon1 = radians(float(lat1)), radians(float(lon1))
-    lat2, lon2 = radians(float(lat2)), radians(float(lon2))
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-    distance = Radius_Earth * c
-    return distance
-
-
-def is_safe_url(url: str) -> bool:
-    """
-    Check if a URL is safe to fetch (prevents SSRF).
-    It ensures the URL uses http/https and that all resolved IPs are public.
-    """
-    try:
-        parsed = urlparse(url.strip())
-        if parsed.scheme not in {"http", "https"}:
-            return False
-
-        hostname = parsed.hostname
-        if not hostname:
-            return False
-
-        port = parsed.port
-        if port is None:
-            port = 443 if parsed.scheme == "https" else 80
-
-        # Resolve all addresses (IPv4 + IPv6). URL is safe only if all are public.
-        address_info = socket.getaddrinfo(hostname, port, type=socket.SOCK_STREAM)
-        resolved_ips = {item[4][0] for item in address_info}
-        if not resolved_ips:
-            return False
-
-        for ip_addr in resolved_ips:
-            ip = ipaddress.ip_address(ip_addr)
-            if not ip.is_global:
-                return False
-
-        return True
-    except (ValueError, OSError):
-        return False
 
 
 def get_urls_from_text(text: str) -> bool:

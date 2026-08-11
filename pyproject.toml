@@ -24,7 +24,6 @@ dependencies = [
     "yt-dlp~=2026.7.4",
     "bs4~=0.0.2",
     "python-dotenv~=1.2.2",
-    "feedparser~=6.0.12",
     "pyromod~=3.1.6",
     "img2pdf~=0.5.1",
     "telegraph~=2.2.0",
