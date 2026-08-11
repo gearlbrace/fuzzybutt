@@ -24,10 +24,8 @@ SOFTWARE.
 
 import asyncio
 
-from asyncio import gather
 from datetime import datetime, timedelta
 from io import BytesIO
-from math import atan2, cos, radians, sin, sqrt
 from os import execvp
 from random import randint
 from re import findall
@@ -44,7 +42,7 @@ from pyrogram.types import Message
 
 from wbb import aiohttpsession as aiosession
 from wbb.utils.dbfunctions import start_restart_stage
-from wbb.utils.http import get, post
+from wbb.utils.http import post
 
 
 async def restart(m: Message):
@@ -129,24 +127,6 @@ async def transfer_sh(file_or_message):
         resp = await post("https://transfer.sh/", data=params)
         url = resp.strip()
     return url
-
-
-async def calc_distance_from_ip(ip1: str, ip2: str) -> float:
-    Radius_Earth = 6371.0088
-    data1, data2 = await gather(
-        get(f"http://ipinfo.io/{ip1}"),
-        get(f"http://ipinfo.io/{ip2}"),
-    )
-    lat1, lon1 = data1["loc"].split(",")
-    lat2, lon2 = data2["loc"].split(",")
-    lat1, lon1 = radians(float(lat1)), radians(float(lon1))
-    lat2, lon2 = radians(float(lat2)), radians(float(lon2))
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-    distance = Radius_Earth * c
-    return distance
 
 
 def get_urls_from_text(text: str) -> bool:
