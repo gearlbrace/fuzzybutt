@@ -289,15 +289,6 @@ wheels = [
 ]
 
 [[package]]
-name = "fake-useragent"
-version = "0.1.14"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/21/0f/a9e776216ce1f9ec00ebac8786c355e6ae5126f4d5d9302c9475e0e9781d/fake-useragent-0.1.14.tar.gz", hash = "sha256:470c509fc645a4fb2799a6cdf35982c3d27e57af04f601b3f37ac0b5e46c0cc7", size = 19247, upload-time = "2022-11-05T17:35:53.137Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/cb/31/1ac89e1e6cda98b1b214f029debec513a20ad49edc0920284cde9194931b/fake_useragent-0.1.14-py3-none-any.whl", hash = "sha256:f51e7c58e3733be152f69e2d0751d19274f0d36dd7a75e6706e503163bc61d46", size = 13753, upload-time = "2022-11-05T17:35:51.444Z" },
-]
-
-[[package]]
 name = "ffmpeg-python"
 version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1033,21 +1024,6 @@ wheels = [
 ]
 
 [[package]]
-name = "search-engine-parser"
-version = "0.6.8"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "aiohttp" },
-    { name = "beautifulsoup4" },
-    { name = "fake-useragent" },
-    { name = "lxml" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/cf/83/510ce907753919812bec1a2e2a279443f50aadb1a64ab2adc16fca0b8dea/search-engine-parser-0.6.8.tar.gz", hash = "sha256:26a28b9dee1ccf5f5c228dce697cc3c0dbe38cd68062c72d68da9a9ef434838f", size = 29179, upload-time = "2022-11-21T22:22:23.543Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/ba/34658d7432fe8d7b87eeeaea92cd853c962305876e9139c8e8f9e173f29c/search_engine_parser-0.6.8-py3-none-any.whl", hash = "sha256:ef5e046a2059e90d199c116f69277f6008e384c10363e483d020abfa305e5c8a", size = 37933, upload-time = "2022-11-21T22:22:21.939Z" },
-]
-
-[[package]]
 name = "soupsieve"
 version = "2.8.4"
 source = { registry = "https://pypi.org/simple" }
@@ -1138,7 +1114,6 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "pytz" },
     { name = "requests" },
-    { name = "search-engine-parser" },
     { name = "speedtest-cli" },
     { name = "telegraph" },
     { name = "tgcrypto" },
@@ -1171,7 +1146,6 @@ requires-dist = [
     { name = "python-dotenv", specifier = "~=1.2.2" },
     { name = "pytz", specifier = "~=2024.1" },
     { name = "requests", specifier = "~=2.33.0" },
-    { name = "search-engine-parser", specifier = "~=0.6.8" },
     { name = "speedtest-cli", specifier = "~=2.1.3" },
     { name = "telegraph", specifier = "~=2.2.0" },
     { name = "tgcrypto", specifier = "~=1.2.5" },
