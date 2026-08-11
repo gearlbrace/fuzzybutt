@@ -206,6 +206,7 @@ async def start(_, message):
                 if re.findall(r"\[.+\,.+\]", text):
                     text, keyb = extract_text_and_keyb(ikb, text)
                 await app.send_message(user_id, text=text, reply_markup=keyb)
+                return
             else:
                 return await app.send_message(
                     user_id,
