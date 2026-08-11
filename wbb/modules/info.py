@@ -24,7 +24,7 @@ SOFTWARE.
 import os
 
 from pyrogram import filters
-from pyrogram.types import Message
+from pyrogram.types import LinkPreviewOptions, Message
 
 from wbb import SUDOERS, app
 from wbb.core.sections import section
@@ -114,7 +114,7 @@ async def info_func(_, message: Message):
         return await m.edit(f"{str(e)}, Perhaps you meant to use /chat_info ?")
 
     if not photo_id:
-        return await m.edit(info_caption, disable_web_page_preview=True)
+        return await m.edit(info_caption, link_preview_options=LinkPreviewOptions(is_disabled=True))
     photo = await app.download_media(photo_id)
 
     await message.reply_photo(photo, caption=info_caption, quote=False)
@@ -138,7 +138,7 @@ async def chat_info_func(_, message: Message):
 
         info_caption, photo_id = await get_chat_info(chat)
         if not photo_id:
-            return await m.edit(info_caption, disable_web_page_preview=True)
+            return await m.edit(info_caption, link_preview_options=LinkPreviewOptions(is_disabled=True))
 
         photo = await app.download_media(photo_id)
         await message.reply_photo(photo, caption=info_caption, quote=False)

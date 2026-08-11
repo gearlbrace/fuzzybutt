@@ -1,7 +1,7 @@
 from asyncio import sleep
 
 from pyrogram import filters
-from pyrogram.types import Message
+from pyrogram.types import LinkPreviewOptions, Message
 
 from wbb import SUDOERS, USERBOT_PREFIX, app2, eor
 from wbb.core.sections import section
@@ -79,4 +79,4 @@ async def parse(_, message: Message):
             caption=text,
         )
 
-    await m_.edit(text, disable_web_page_preview=True)
+    await m_.edit(text, link_preview_options=LinkPreviewOptions(is_disabled=True))

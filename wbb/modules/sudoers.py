@@ -30,7 +30,7 @@ import psutil
 from pyrogram import filters, types
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import FloodWait
-from pyrogram.types import InlineKeyboardMarkup
+from pyrogram.types import InlineKeyboardMarkup, LinkPreviewOptions
 
 from wbb import (
     BOT_ID,
@@ -155,11 +155,11 @@ __**New Global Ban**__
         m2 = await app.send_message(
             GBAN_LOG_GROUP_ID,
             text=ban_text,
-            disable_web_page_preview=True,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
         )
         await m.edit(
             f"Banned {user.mention} Globally!\nAction Log: {m2.link}",
-            disable_web_page_preview=True,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
         )
     except Exception:
         await message.reply_text(
