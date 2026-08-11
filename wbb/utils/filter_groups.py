@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 chat_filters_group = 1
+fast_group = 2
 karma_positive_group = 3
 karma_negative_group = 4
 welcome_captcha_group = 6

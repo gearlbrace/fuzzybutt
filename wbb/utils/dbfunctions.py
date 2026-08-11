@@ -47,6 +47,7 @@ captcha_cachedb = db.captcha_cache
 emoji_captchadb = db.emoji_captcha
 afkdb = db.afk
 afk_cleanmode_db = db.afk_cleanmode
+fastdb = db.fast_toggle
 antiservicedb = db.antiservice
 pmpermitdb = db.pmpermit
 welcomedb = db.welcome_text
@@ -781,3 +782,22 @@ async def afk_cleanmode_off(chat_id: int):
     if not is_on:
         return
     return await afk_cleanmode_db.insert_one({"chat_id": chat_id})
+
+
+async def is_fast_on(chat_id: int) -> bool:
+    chat = await fastdb.find_one({"chat_id": chat_id})
+    return bool(chat)
+
+
+async def fast_on(chat_id: int):
+    is_on = await is_fast_on(chat_id)
+    if is_on:
+        return
+    return await fastdb.insert_one({"chat_id": chat_id})
+
+
+async def fast_off(chat_id: int):
+    is_on = await is_fast_on(chat_id)
+    if not is_on:
+        return
+    return await fastdb.delete_one({"chat_id": chat_id})
