@@ -32,15 +32,13 @@ import yt_dlp
 from pyrogram import filters
 
 from wbb import aiohttpsession as session
-from wbb import app, arq
+from wbb import app
 from wbb.core.decorators.errors import capture_err
-from wbb.utils.pastebin import paste
 
 __MODULE__ = "Music"
 __HELP__ = """
 /ytmusic [link] To Download Music From Various Websites Including Youtube. [SUDOERS]
 /saavn [query] To Download Music From Saavn.
-/lyrics [query] To Get Lyrics Of A Song.
 """
 
 is_downloading = False
@@ -142,30 +140,3 @@ async def download_song(url):
     song = BytesIO(song)
     song.name = "a.mp3"
     return song
-
-
-# Lyrics
-
-
-@app.on_message(filters.command("lyrics"))
-async def lyrics_func(_, message):
-    if len(message.command) < 2:
-        return await message.reply_text("**Usage:**\n/lyrics [QUERY]")
-    m = await message.reply_text("**Searching**")
-    query = message.text.strip().split(None, 1)[1]
-
-    resp = await arq.lyrics(query)
-
-    if not (resp.ok and resp.result):
-        return await m.edit("No lyrics found.")
-
-    song = resp.result[0]
-    song_name = song["song"]
-    artist = song["artist"]
-    lyrics = song["lyrics"]
-    msg = f"**{song_name}** | **{artist}**\n\n__{lyrics}__"
-
-    if len(msg) > 4095:
-        msg = await paste(msg)
-        msg = f"**LYRICS_TOO_LONG:** [URL]({msg})"
-    return await m.edit(msg)
