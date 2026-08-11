@@ -52,10 +52,15 @@ thehamkercat@arch:~$ git clone https://github.com/thehamkercat/WilliamButcherBot
 thehamkercat@arch:~$ cd WilliamButcherBot
 thehamkercat@arch:~$ pip3 install -U -r requirements.txt
 thehamkercat@arch:~$ cp sample_config.py config.py
+thehamkercat@arch:~$ wget https://github.com/samuelngs/apple-emoji-linux/releases/download/v16.4-patch.1/AppleColorEmoji.ttf
 ```
  
 <h3 align="center"> 
     Edit <b>config.py</b> with your own values
+</h3>
+
+<h3 align="center"> 
+    The <code>AppleColorEmoji.ttf</code> download above is required for <code>/captcha mode</code>'s emoji captcha. It's a ~45MB font, so it's fetched separately rather than committed to the repo.
 </h3>
 
 <h2 align="center"> 
