@@ -314,7 +314,7 @@ async def welcome(_, user: ChatMemberUpdated):
     return await handle_new_member(member, chat)
 
 
-async def send_welcome_message(chat: Chat, user_id: int, delete: bool = False):
+async def send_welcome_message(chat: Chat, user_id: int, persist: bool = False):
     welcome, raw_text, file_id = await get_welcome(chat.id)
 
     if not raw_text:
@@ -353,6 +353,8 @@ async def send_welcome_message(chat: Chat, user_id: int, delete: bool = False):
                 caption=text,
                 reply_markup=keyb,
             )
+        if persist:
+            return
         await asyncio.sleep(300)
         await m.delete()
 
@@ -440,7 +442,7 @@ async def callback_query_welcome_button(_, callback_query):
     # send captcha to this user when he joins again.
     await save_captcha_solved(chat.id, pending_user_id)
 
-    return await send_welcome_message(chat, pending_user_id, True)
+    return await send_welcome_message(chat, pending_user_id, persist=True)
 
 
 async def kick_restricted_after_delay(
@@ -531,7 +533,7 @@ async def buttons_handlers(_, cb):
     except Exception:
         pass
     await cb.message.delete()
-    await send_welcome_message(cb.message.chat, cb.from_user.id, True)
+    await send_welcome_message(cb.message.chat, cb.from_user.id, persist=True)
 
 
 @app.on_callback_query(filters.regex("cmode_(.*)"))
