@@ -254,7 +254,7 @@
   </main>
 </div>
 
-<p class="foot-note">Access tiers reflect what the code checks at call time. Anonymous chat admins are always allowed through admin-gated commands. “Reply required” means the command must be sent as a reply to another message. Several commands (kang, reverse, paste, webss) have a matching userbot-side equivalent under the same name — noted inline rather than listed twice.</p>
+<p class="foot-note">Access tiers reflect what the code checks at call time. Anonymous chat admins are always allowed through admin-gated commands. “Reply required” means the command must be sent as a reply to another message. <code class="mono">/kang</code> and <code class="mono">/reverse</code> have a matching userbot-side equivalent under the same name — noted inline rather than listed twice.</p>
 
 <script>
 const DATA = [
@@ -345,16 +345,9 @@ const DATA = [
       ["/fedstat","Checks a ban status for yourself or a user across federations.","open","/fedstat [user] [fed_id] — PM only"],
       ["/fbroadcast","Broadcasts the replied message to every chat in the federation.","admin","/fbroadcast — reply required, fed admin"],
     ]},
-  { id:"media", title:"Media, Files & Converters", blurb:"Turning messages into images, audio, screenshots, and paste links.",
+  { id:"stickers", title:"Stickers & Lookup", blurb:"Sticker tools and a reverse image search.",
     items:[
-      ["/carbon","Renders replied text as a “carbon” code-style image.","open","/carbon — reply to text"],
-      ["/pdf","Converts replied image(s), or a whole media group, into a PDF.","open","/pdf [name] — reply to image(s)"],
-      ["/ytmusic","Downloads audio from a YouTube link or search query via yt-dlp.","open","/ytmusic <link or query> — one at a time, ≤30 min"],
-      ["/webss","Takes a screenshot of a website.","open","/webss <url> [full=yes] — also on the userbot as .webss"],
-      ["/telegraph","Posts replied text to Telegraph.","open","/telegraph [page name] — reply to text"],
-      ["/paste","Pastes replied text or a document to a pastebin.","open","/paste — reply required, also on the userbot"],
       ["/reverse","Reverse-image-searches a replied image, sticker or document via Google.","open","/reverse — reply required, also on the userbot"],
-      ["/tts","Converts replied text to speech (auto-detects language).","open","/tts — reply to text"],
       ["/sticker_id","Shows the file_id of a replied sticker.","open","/sticker_id — reply required"],
       ["/get_sticker","Sends a replied sticker back as a photo and a document.","open","/get_sticker — reply required"],
       ["/kang","Adds a replied sticker or image to your own sticker pack.","open","/kang [emoji] — reply required, also on the userbot"],

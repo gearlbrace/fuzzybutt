@@ -2,7 +2,7 @@
 
 Every command exposed by the bot and its companion userbot session, grouped by what it's for. Bot commands use `/`; userbot-only commands run through the operator's own account, typically with a `.` prefix. Both prefixes are accepted by their respective sessions.
 
-**112 commands · 7 categories · 4 access tiers**
+**105 commands · 7 categories · 4 access tiers**
 
 ## Access tiers
 
@@ -13,7 +13,7 @@ Every command exposed by the bot and its companion userbot session, grouped by w
 | **Sudo** | Bot developers/sudoers only |
 | **Userbot** | Runs through the operator's personal account (the linked userbot session), gated to developers/sudoers |
 
-Reply-required commands must be sent as a reply to another message. A few commands (`kang`, `reverse`, `paste`, `webss`) have a matching userbot-side equivalent under the same name — noted inline rather than listed twice.
+Reply-required commands must be sent as a reply to another message. `/kang` and `/reverse` have a matching userbot-side equivalent under the same name — noted inline rather than listed twice.
 
 ---
 
@@ -120,20 +120,13 @@ Cross-group ban lists ("federations") that link multiple chats under shared mode
 | `/fedstat` | Checks a ban status for yourself or a user across federations. | Open | `/fedstat [user] [fed_id]` — PM only |
 | `/fbroadcast` | Broadcasts the replied message to every chat in the federation. | Admin | `/fbroadcast` — reply required, fed admin |
 
-## Media, Files & Converters
+## Stickers & Lookup
 
-Turning messages into images, audio, screenshots, and paste links.
+Sticker tools and a reverse image search.
 
 | Command | Description | Access | Usage |
 |---|---|---|---|
-| `/carbon` | Renders replied text as a "carbon" code-style image. | Open | `/carbon` — reply to text |
-| `/pdf` | Converts replied image(s), or a whole media group, into a PDF. | Open | `/pdf [name]` — reply to image(s) |
-| `/ytmusic` | Downloads audio from a YouTube link or search query via yt-dlp. | Open | `/ytmusic <link or query>` — one at a time, ≤30 min |
-| `/webss` | Takes a screenshot of a website. | Open | `/webss <url> [full=yes]` — also on the userbot as `.webss` |
-| `/telegraph` | Posts replied text to Telegraph. | Open | `/telegraph [page name]` — reply to text |
-| `/paste` | Pastes replied text or a document to a pastebin. | Open | `/paste` — reply required, also on the userbot |
 | `/reverse` | Reverse-image-searches a replied image, sticker or document via Google. | Open | `/reverse` — reply required, also on the userbot |
-| `/tts` | Converts replied text to speech (auto-detects language). | Open | `/tts` — reply to text |
 | `/sticker_id` | Shows the file_id of a replied sticker. | Open | `/sticker_id` — reply required |
 | `/get_sticker` | Sends a replied sticker back as a photo and a document. | Open | `/get_sticker` — reply required |
 | `/kang` | Adds a replied sticker or image to your own sticker pack. | Open | `/kang [emoji]` — reply required, also on the userbot |
