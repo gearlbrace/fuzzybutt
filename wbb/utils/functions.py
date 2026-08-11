@@ -40,7 +40,6 @@ from pyrogram import errors
 from pyrogram.enums import MessageEntityType
 from pyrogram.types import Message
 
-from wbb import aiohttpsession as aiosession
 from wbb.utils.dbfunctions import start_restart_stage
 from wbb.utils.http import post
 
@@ -108,14 +107,6 @@ def test_speedtest():
     download = speed.download()
     upload = speed.upload()
     return [speed_convert(download), speed_convert(upload), info]
-
-
-async def make_carbon(code):
-    url = "https://carbonara.solopov.dev/api/cook"
-    async with aiosession.post(url, json={"code": code}) as resp:
-        image = BytesIO(await resp.read())
-    image.name = "carbon.png"
-    return image
 
 
 async def transfer_sh(file_or_message):
