@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 import asyncio
+import sys
 import time
 from inspect import getfullargspec
 from os import path
@@ -33,6 +34,13 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 from pyromod import listen
 from telegraph import Telegraph
+
+# kurigram doesn't ship pyrogram.emoji (see pyproject.toml's
+# override-dependencies); register a minimal stand-in before anything
+# (pykeyboard, via wbb.core.keyboard) tries to import it.
+from wbb.core import pyrogram_emoji_shim
+
+sys.modules.setdefault("pyrogram.emoji", pyrogram_emoji_shim)
 
 is_config = path.exists("config.py")
 
